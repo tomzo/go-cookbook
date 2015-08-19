@@ -103,6 +103,11 @@ end
     variables(:go_agent_instance => suffix)
   end
 
+  if node['go']['agent']['daemon']
+    daemon = 'Y'
+  else
+    daemon = 'N'
+  end
   template "/etc/default/go-agent#{suffix}" do
     source 'go-agent-defaults.erb'
     mode '0644'
@@ -111,6 +116,7 @@ end
     variables(:go_server_host => go_server_host,
       :go_server_port => '8153',
       :java_home => node['java']['java_home'],
+      :daemon => daemon,
       :work_dir => "#{node['go']['agent']['work_dir_path']}/go-agent#{suffix}")
   end
 
@@ -167,14 +173,16 @@ end
       :agent_environments => autoregister_environments.join(","))
   end
 
-  service "go-agent#{suffix}" do
-    supports :status => true, :restart => true, :reload => true, :start => true
-    action :nothing
-    subscribes :enable, "template[/etc/init.d/go-agent#{suffix}]"
-    subscribes :enable, "template[/var/lib/go-agent#{suffix}/config/autoregister.properties]"
-    subscribes :enable, "template[/etc/default/go-agent#{suffix}]"
-    subscribes :restart, "template[/etc/init.d/go-agent#{suffix}]"
-    subscribes :restart, "template[/var/lib/go-agent#{suffix}/config/autoregister.properties]"
-    subscribes :restart, "template[/etc/default/go-agent#{suffix}]"
+  if node['go']['agent']['manage_service']
+    service "go-agent#{suffix}" do
+      supports :status => true, :restart => true, :reload => true, :start => true
+      action :nothing
+      subscribes :enable, "template[/etc/init.d/go-agent#{suffix}]"
+      subscribes :enable, "template[/var/lib/go-agent#{suffix}/config/autoregister.properties]"
+      subscribes :enable, "template[/etc/default/go-agent#{suffix}]"
+      subscribes :restart, "template[/etc/init.d/go-agent#{suffix}]"
+      subscribes :restart, "template[/var/lib/go-agent#{suffix}/config/autoregister.properties]"
+      subscribes :restart, "template[/etc/default/go-agent#{suffix}]"
+    end
   end
 end
