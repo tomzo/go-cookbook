@@ -1,6 +1,8 @@
-remote_file node['gocd']['agent']['package_file']['filename'] do
-  path node['gocd']['agent']['package_file']['path']
-  source node['gocd']['agent']['package_file']['url']
+package_path = File.join(Chef::Config[:file_cache_path],go_agent_package_name)
+
+remote_file go_agent_package_name do
+  path package_path
+  source go_agent_package_url
 end
 
 autoregister_values = get_agent_properties
@@ -12,16 +14,10 @@ end
 
 opts = []
 opts << "/SERVERIP=#{autoregister_values[:go_server_host]}"
+opts << "/S"
 opts << '/D=C:\GoAgent'
 
-if defined?(Chef::Provider::Package::Windows)
-  package 'Go Agent' do
-    source node['gocd']['agent']['package_file']['path']
-    options opts.join(" ")
-  end
-else
-  windows_package 'Go Agent' do
-    source node['gocd']['agent']['package_file']['path']
-    options opts.join(" ")
-  end
+execute "install Go Agent" do
+  command "#{package_path} #{opts.join(' ')}"
+  creates "C:\\GoAgent\\agent.cmd"
 end

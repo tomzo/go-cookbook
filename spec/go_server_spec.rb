@@ -62,8 +62,8 @@ describe 'gocd::server' do
     end
     it_behaves_like :server_recipe
     it 'downloads go-server .deb from remote URL' do
-      expect(chef_run).to create_remote_file('go-server-16.1.0-2855.deb').with(
-        source: 'https://download.go.cd/binaries/16.1.0-2855/deb/go-server-16.1.0-2855.deb')
+      expect(chef_run).to create_remote_file('go-server-stable.deb').with(
+        source: 'https://download.go.cd/binaries/16.2.1-3027/deb/go-server-16.2.1-3027.deb')
     end
     it 'installs go-server package from file' do
       expect(chef_run).to install_dpkg_package('go-server')
@@ -81,8 +81,8 @@ describe 'gocd::server' do
     end
     it_behaves_like :server_recipe
     it 'downloads go-server .rpm from remote URL' do
-      expect(chef_run).to create_remote_file('go-server-16.1.0-2855.noarch.rpm').with(
-        source: 'https://download.go.cd/binaries/16.1.0-2855/rpm/go-server-16.1.0-2855.noarch.rpm')
+      expect(chef_run).to create_remote_file('go-server-stable.noarch.rpm').with(
+        source: 'https://download.go.cd/binaries/16.2.1-3027/rpm/go-server-16.2.1-3027.noarch.rpm')
     end
     it 'installs go-server package from file' do
       expect(chef_run).to install_rpm_package('go-server')
