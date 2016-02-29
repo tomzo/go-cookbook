@@ -16,6 +16,11 @@ describe 'gocd::server' do
         node.automatic['platform'] = 'windows'
         node.automatic['os'] = 'windows'
       end
+
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:open).with('https://update.go.cd/channels/supported/latest.json', 'r').and_return(
+        StringIO.new('"message": "{\"latest-version\": \"16.2.1-3027\"}"')
+      )
+
       run.converge(described_recipe)
     end
 
@@ -23,8 +28,21 @@ describe 'gocd::server' do
       expect(chef_run).to create_remote_file('go-server-stable-setup.exe').with(
         :source => 'https://download.go.cd/binaries/16.2.1-3027/win/go-server-16.2.1-3027-setup.exe')
     end
+
     it 'installs package via execute' do
       expect(chef_run).to run_execute('install Go Server')
+    end
+
+    it 'downloads from experimental release if experimental flag is on' do
+      chef_run.node.set['gocd']['use_experimental'] = true
+
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:open).with('https://update.go.cd/channels/experimental/latest.json', 'r').and_return(
+        StringIO.new('"message": "{\"latest-version\": \"20.1.2-12345\"}"')
+      )
+
+      chef_run.converge(described_recipe)
+      expect(chef_run).to create_remote_file('go-server-stable-setup.exe').with(
+        :source => 'https://download.go.cd/experimental/binaries/20.1.2-12345/win/go-server-20.1.2-12345-setup.exe')
     end
   end
 

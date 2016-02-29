@@ -1,18 +1,32 @@
+default['gocd']['version'] = nil  # can be `latest` or specify a version `X.Y.Z-ABCD`
+default['gocd']['use_experimental'] = false
+
+default['gocd']['updates']['url'] = if node['gocd']['use_experimental']
+                                      'https://update.go.cd/channels/experimental/latest.json'
+                                    else
+                                      'https://update.go.cd/channels/supported/latest.json'
+end
+
+repo_url = if node['gocd']['use_experimental']
+             'https://download.go.cd/experimental'
+           else
+             'https://download.go.cd'
+end
+
 if node['platform_family'] == 'windows'
   default['gocd']['install_method'] = 'package_file'
 else
   default['gocd']['install_method'] = 'repository'
 end
-default['gocd']['updates']['baseurl'] = 'https://update.go.cd/channels'
 
-default['gocd']['repository']['apt']['uri'] = 'https://download.go.cd'
-default['gocd']['repository']['apt']['components'] = [ '/' ]
+default['gocd']['repository']['apt']['uri'] = repo_url
+default['gocd']['repository']['apt']['components'] = ['/']
 default['gocd']['repository']['apt']['distribution'] = ''
 default['gocd']['repository']['apt']['package_options'] = ''
 default['gocd']['repository']['apt']['keyserver'] = 'pgp.mit.edu'
 default['gocd']['repository']['apt']['key'] = '0xd8843f288816c449'
 
-default['gocd']['repository']['yum']['baseurl'] = 'https://download.go.cd'
+default['gocd']['repository']['yum']['baseurl'] = repo_url
 default['gocd']['repository']['yum']['gpgcheck'] = true
 default['gocd']['repository']['yum']['gpgkey'] = 'https://download.go.cd/GOCD-GPG-KEY.asc'
 

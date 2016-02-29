@@ -28,8 +28,15 @@ describe 'gocd::server' do
     end
     it_behaves_like :server_recipe
     it_behaves_like :apt_repository_recipe
+
     it 'installs go-server package' do
       expect(chef_run).to install_package('go-server')
+    end
+
+    it 'upgrades go-server package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-server')
     end
   end
   context 'When all attributes are default and platform is centos' do
@@ -45,6 +52,11 @@ describe 'gocd::server' do
     it_behaves_like :yum_repository_recipe
     it 'installs go-server package' do
       expect(chef_run).to install_package('go-server')
+    end
+    it 'upgrades go-server package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-server')
     end
   end
   #TODO: server on windows
@@ -116,8 +128,15 @@ describe 'gocd::server' do
         key: nil,
         components: ['/'])
     end
+
     it 'installs go-server package' do
       expect(chef_run).to install_package('go-server')
+    end
+
+    it 'upgrades go-server package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-server')
     end
   end
   context 'When installing from custom repository and platform is centos' do
@@ -141,8 +160,16 @@ describe 'gocd::server' do
         gpgcheck: true
       )
     end
+
     it 'installs go-server package' do
       expect(chef_run).to install_package('go-server')
     end
+
+    it 'upgrades go-server package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-server')
+    end
+
   end
 end

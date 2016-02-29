@@ -62,6 +62,12 @@ describe 'gocd::agent' do
     it 'installs go-agent package' do
       expect(chef_run).to install_package('go-agent')
     end
+
+    it 'upgrades go-agent package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-agent')
+    end
   end
   context 'When all attributes are default and platform is centos' do
     let(:chef_run) do
@@ -80,6 +86,12 @@ describe 'gocd::agent' do
     it_behaves_like :yum_repository_recipe
     it 'installs go-agent package' do
       expect(chef_run).to install_package('go-agent')
+    end
+
+    it 'upgrades go-agent package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-agent')
     end
   end
 
@@ -104,6 +116,13 @@ describe 'gocd::agent' do
     it 'installs go-agent package' do
       expect(chef_run).to install_package('go-agent')
     end
+
+    it 'upgrades go-agent package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-agent')
+    end
+
     # https://github.com/gocd/gocd/blob/master/installers/agent/release/README.md
     it 'creates additional gocd_agent chef resource' do
       expect(chef_run).to create_gocd_agent('go-agent-1')
@@ -229,6 +248,13 @@ describe 'gocd::agent' do
     it 'installs go-agent package' do
       expect(chef_run).to install_package('go-agent')
     end
+
+    it 'upgrades go-agent package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-agent')
+    end
+
   end
   context 'When installing from custom repository and platform is centos' do
     let(:chef_run) do
@@ -255,8 +281,15 @@ describe 'gocd::agent' do
         gpgcheck: true
       )
     end
+
     it 'installs go-agent package' do
       expect(chef_run).to install_package('go-agent')
+    end
+
+    it 'upgrades go-agent package if version is set to `latest`' do
+      chef_run.node.set['gocd']['version'] = 'latest'
+      chef_run.converge(described_recipe)
+      expect(chef_run).to upgrade_package('go-agent')
     end
   end
 end

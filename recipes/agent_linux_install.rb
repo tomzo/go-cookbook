@@ -11,10 +11,14 @@ when 'repository'
   package_options = node['gocd']['repository']['apt']['package_options'] if node['platform_family'] == 'debian'
   package "go-agent" do
     notifies :reload, 'ohai[reload_passwd_for_go_user]', :immediately
-    version go_version_repo
+    if latest_version?
+      action :upgrade
+    else
+      version user_requested_version
+    end
   end
 when 'package_file'
-  package_path = File.join(Chef::Config[:file_cache_path],go_agent_package_name)
+  package_path = File.join(Chef::Config[:file_cache_path], go_agent_package_name)
   remote_file go_agent_package_name do
     path package_path
     source go_agent_package_url
