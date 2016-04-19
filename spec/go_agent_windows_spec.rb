@@ -25,8 +25,8 @@ describe 'gocd::agent' do
       expect(chef_run).to create_remote_file('go-agent-stable-setup.exe').with(
         :source => 'https://download.go.cd/binaries/16.2.1-3027/win/go-agent-16.2.1-3027-setup.exe')
     end
-    it 'installs package via execute' do
-      expect(chef_run).to run_execute('install Go Agent')
+    it 'installs go-agent package' do
+      expect(chef_run).to install_package('Go Agent')
     end
   end
 
@@ -45,8 +45,8 @@ describe 'gocd::agent' do
       expect(chef_run).to create_remote_file('go-agent-custom-setup.exe').with(
         :source => 'https://example.com/go-agent.exe')
     end
-    it 'installs package via execute' do
-      expect(chef_run).to run_execute('install Go Agent')
+    it 'installs go-agent package' do
+      expect(chef_run).to install_package('Go Agent')
     end
   end
 end

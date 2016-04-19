@@ -9,7 +9,16 @@ opts = []
 opts << '/S'
 opts << '/D=C:\GoServer'
 
-execute "install Go Server" do
-  command "#{package_path} #{opts.join(' ')}"
-  creates "C:\\GoServer"
+if defined?(Chef::Provider::Package::Windows)
+  package 'Go Server' do
+    installer_type :custom
+    source package_path
+    options opts.join(" ")
+  end
+else
+  windows_package 'Go Server' do
+    installer_type :custom
+    source package_path
+    options opts.join(" ")
+  end
 end

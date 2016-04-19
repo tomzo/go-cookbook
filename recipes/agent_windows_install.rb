@@ -17,7 +17,16 @@ opts << "/SERVERIP=#{autoregister_values[:go_server_host]}"
 opts << "/S"
 opts << '/D=C:\GoAgent'
 
-execute "install Go Agent" do
-  command "#{package_path} #{opts.join(' ')}"
-  creates "C:\\GoAgent\\agent.cmd"
+if defined?(Chef::Provider::Package::Windows)
+  package 'Go Agent' do
+    installer_type :nsis
+    source package_path
+    options opts.join(" ")
+  end
+else
+  windows_package 'Go Agent' do
+    installer_type :nsis
+    source package_path
+    options opts.join(" ")
+  end
 end
