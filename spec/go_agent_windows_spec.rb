@@ -16,6 +16,8 @@ describe 'gocd::agent' do
         node.automatic['platform'] = 'windows'
         node.automatic['os'] = 'windows'
       end
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:fetch_content)
+        .and_return('{"message": "{\"latest-version\": \"16.2.1-3027\"}"}')
       run.converge(described_recipe)
     end
 

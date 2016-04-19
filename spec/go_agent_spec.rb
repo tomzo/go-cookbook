@@ -176,6 +176,9 @@ describe 'gocd::agent' do
         node.normal['gocd']['agent']['go_server_host'] = 'localhost'
         node.normal['gocd']['install_method'] = 'package_file'
       end
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:fetch_content)
+        .with('https://update.go.cd/channels/supported/latest.json')
+        .and_return('{"message": "{\"latest-version\": \"16.2.1-3027\"}"}')
       run.converge(described_recipe)
     end
     before do
@@ -199,6 +202,8 @@ describe 'gocd::agent' do
         node.normal['gocd']['agent']['go_server_host'] = 'localhost'
         node.normal['gocd']['install_method'] = 'package_file'
       end
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:fetch_content)
+        .and_return('{"message": "{\"latest-version\": \"16.2.1-3027\"}"}')
       run.converge(described_recipe)
     end
     before do

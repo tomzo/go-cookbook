@@ -70,6 +70,8 @@ describe 'gocd::server' do
         node.automatic['os'] = 'linux'
         node.normal['gocd']['install_method'] = 'package_file'
       end
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:fetch_content)
+        .and_return('{"message": "{\"latest-version\": \"16.2.1-3027\"}"}')
       run.converge(described_recipe)
     end
     it_behaves_like :server_recipe
@@ -89,6 +91,8 @@ describe 'gocd::server' do
         node.automatic['os'] = 'linux'
         node.normal['gocd']['install_method'] = 'package_file'
       end
+      allow_any_instance_of(Chef::Resource::RemoteFile).to receive(:fetch_content)
+        .and_return('{"message": "{\"latest-version\": \"16.2.1-3027\"}"}')
       run.converge(described_recipe)
     end
     it_behaves_like :server_recipe

@@ -2,6 +2,10 @@ require 'open-uri'
 
 module Gocd
   module Helpers
+    def fetch_content url
+      open(url, 'r').read
+    end
+
     def get_agent_properties
       values = {}
       values[:go_server_port] = node['gocd']['agent']['go_server_port']
@@ -71,19 +75,38 @@ module Gocd
       node['gocd']['updates']['baseurl']
     end
 
+    def updates_url
+      if node['gocd']['updates']['url']
+        # user provided updates url
+        node['gocd']['updates']['url']
+      elsif node['gocd']['use_experimental']
+        'https://update.go.cd/channels/experimental/latest.json'
+      else
+        'https://update.go.cd/channels/supported/latest.json'
+      end
+    end
+
     def fetch_go_version(_is_experimental)
-      url = node['gocd']['updates']['url']
+      url = updates_url
 
       begin
-        parsed = JSON.parse(open(url, 'r').read)
-        fail 'Invalid format in version json file' unless parsed['message']
-        message = JSON.parse(parsed['message'])
-        return message['latest-version']
+        fetch_go_version_from_url url
       rescue => e
         Chef::Log.error("Failed to get Go version from updates service - #{e}")
         # fallback to last known stable
-        '16.2.1-3027'
+        '16.3.0-3183'
       end
+    end
+
+    def fetch_go_version_from_url url
+      text = fetch_content url
+      if text.empty?
+        fail 'text is empty'
+      end
+      parsed = JSON.parse(text)
+      fail 'Invalid format in version json file' unless parsed['message']
+      message = JSON.parse(parsed['message'])
+      return message['latest-version']
     end
 
     def package_extension
@@ -113,6 +136,8 @@ module Gocd
         return node['gocd']['version']
       elsif node['gocd'][component]['package_file']['url']
         return 'custom'
+      elsif experimental?
+        return 'experimental'
       else
         return 'stable'
       end
@@ -125,6 +150,28 @@ module Gocd
 
     def go_server_package_name
       "go-server-#{user_friendly_version('server')}#{package_extension}"
+    end
+
+    def yum_uri
+      if node['gocd']['repository']['yum']['baseurl']
+        # user provided yum URI
+        node['gocd']['repository']['yum']['baseurl']
+      elsif node['gocd']['use_experimental']
+        'https://download.go.cd/experimental'
+      else
+        'https://download.go.cd'
+      end
+    end
+
+    def apt_uri
+      if node['gocd']['repository']['apt']['uri']
+        # user provided apt URI
+        node['gocd']['repository']['apt']['uri']
+      elsif node['gocd']['use_experimental']
+        'https://download.go.cd/experimental'
+      else
+        'https://download.go.cd'
+      end
     end
 
     def go_baseurl
