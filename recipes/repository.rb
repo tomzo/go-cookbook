@@ -1,6 +1,7 @@
 case node['platform_family']
 when 'debian'
   include_recipe 'apt'
+  package 'apt-transport-https'
 
   apt_repository 'gocd' do
     uri apt_uri
