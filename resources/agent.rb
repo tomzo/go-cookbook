@@ -45,19 +45,6 @@ action :create do
     owner    new_resource.user
     group    new_resource.group
   end
-  # package manages the init.d/go-agent script so cookbook should not.
-  bash "setup init.d for #{agent_name}" do
-    code <<-EOH
-    cp /etc/init.d/go-agent /etc/init.d/#{agent_name}
-    sed -i 's/# Provides: go-agent$/# Provides: #{agent_name}/g' /etc/init.d/#{agent_name}
-    EOH
-    not_if "grep -q '# Provides: #{agent_name}$' /etc/init.d/#{agent_name}"
-    only_if { agent_name != 'go-agent' }
-  end
-  link "/usr/share/#{agent_name}" do
-    to "/usr/share/go-agent"
-    not_if { agent_name == 'go-agent' }
-  end
 
   autoregister_values = get_agent_properties
   autoregister_values[:key] =  new_resource.autoregister_key || autoregister_values[:key]
@@ -71,6 +58,35 @@ action :create do
     Chef::Log.warn("Go server not found on Chef server or not specifed via node['gocd']['agent']['go_server_url'] attribute, defaulting Go server to #{autoregister_values[:go_server_url]}")
   end
 
+  case node['gocd']['agent']['type']
+  when 'java'
+    autoregister_file_path = "#{workspace}/config/autoregister.properties"
+    # package manages the init.d/go-agent script so cookbook should not.
+    bash "setup init.d for #{agent_name}" do
+      code <<-EOH
+      cp /etc/init.d/go-agent /etc/init.d/#{agent_name}
+      sed -i 's/# Provides: go-agent$/# Provides: #{agent_name}/g' /etc/init.d/#{agent_name}
+      EOH
+      not_if "grep -q '# Provides: #{agent_name}$' /etc/init.d/#{agent_name}"
+      only_if { agent_name != 'go-agent' }
+    end
+    link "/usr/share/#{agent_name}" do
+      to "/usr/share/go-agent"
+      not_if { agent_name == 'go-agent' }
+    end
+  when 'golang'
+    autoregister_file_path = "#{workspace}/config/autoregister.sh" if autoregister_values[:key]
+
+    template "/etc/init.d/#{agent_name}" do
+      cookbook 'gocd'
+      source 'golang-agent-init.erb'
+      owner 'root'
+      group 'root'
+      mode 0755
+      variables(agent_name: agent_name, autoregister_file: autoregister_file_path)
+    end
+  end
+
   template "/etc/default/#{agent_name}" do
     source   "go-agent-default.erb"
     cookbook 'gocd'
@@ -82,7 +98,7 @@ action :create do
   end
 
   if autoregister_values[:key]
-    gocd_agent_autoregister_file "#{workspace}/config/autoregister.properties" do
+    gocd_agent_autoregister_file autoregister_file_path do
       owner    new_resource.user
       group    new_resource.group
       autoregister_key new_resource.autoregister_key
@@ -96,8 +112,16 @@ action :create do
     end
   end
 
-  service agent_name do
-    supports :status => true, :restart => autoregister_values[:daemon], :start => true, :stop => true
-    action   new_resource.service_action
+  case node['gocd']['agent']['type']
+  when 'java'
+    service agent_name do
+      supports :status => true, :restart => autoregister_values[:daemon], :start => true, :stop => true
+      action   new_resource.service_action
+    end
+  when 'golang'
+    service agent_name do
+      supports :restart => true, :start => true, :stop => true
+      action   new_resource.service_action
+    end
   end
 end
