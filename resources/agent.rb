@@ -111,7 +111,7 @@ action :create do
     mode '0644'
     owner 'root'
     group 'root'
-    notifies :restart, "service[#{agent_name}]" if autoregister_values[:daemon]
+    #notifies :restart, "service[#{agent_name}]" if autoregister_values[:daemon]
     variables autoregister_values
   end
 
